@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Winning Product Dashboard | Research & Intelligence</title>
+  <!-- Font Awesome 6 (free CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- jsPDF & html2canvas CDNs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- External custom CSS & JS (linked) -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== MAIN APP WRAPPER ==================== -->
+  <div class="app-container">
+
+    <!-- ***** HEADER / NAVBAR (semantic) ***** -->
+    <header class="main-header">
+      <div class="logo-area">
+        <i class="fas fa-chart-line"></i>
+        <h1>Winning Product Dashboard</h1>
+        <span class="badge-pro">v2.0 · Research Suite</span>
+      </div>
+      <nav class="navbar" aria-label="Primary navigation">
+        <button class="nav-btn active" id="navHomeBtn"><i class="fas fa-home"></i> Home</button>
+        <button class="nav-btn" id="navAddBtn"><i class="fas fa-plus-circle"></i> Add Product</button>
+        <button class="nav-btn" id="navExportPdfBtn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+      </nav>
+    </header>
+
+    <!-- ========== MAIN CONTENT GRID ========== -->
+    <main class="dashboard-main">
+
+      <!-- #################### PRODUCT INPUT FORM SECTION #################### -->
+      <section class="card form-card" id="productFormSection">
+        <div class="card-header">
+          <h2><i class="fas fa-cube"></i> Product Intelligence Form</h2>
+          <p>Enter winning product data — all fields support validation and real-time preview</p>
+        </div>
+        <form id="productForm" novalidate>
+          <!-- Product Name -->
+          <div class="form-group">
+            <label for="productName"><i class="fas fa-tag"></i> Product Name *</label>
+            <input type="text" id="productName" name="productName" placeholder="e.g., UltraGlow LED Mask" required minlength="2" maxlength="120">
+            <small class="form-hint">Unique product identifier / title</small>
+          </div>
+
+          <!-- Product Rating (star-system numeric) -->
+          <div class="form-group">
+            <label for="productRating"><i class="fas fa-star"></i> Product Rating (0.0 – 5.0) *</label>
+            <input type="number" id="productRating" name="productRating" step="0.1" min="0" max="5" placeholder="4.8" required>
+            <div class="star-rating-preview" id="starPreview">
+              <span class="star-icon"><i class="far fa-star"></i></span>
+              <span class="rating-value" id="ratingValuePreview">0.0</span>
+            </div>
+          </div>
+
+          <!-- Product Cost (currency) -->
+          <div class="form-group">
+            <label for="productCost"><i class="fas fa-dollar-sign"></i> Product Cost (USD) *</label>
+            <input type="number" id="productCost" name="productCost" step="0.01" min="0" placeholder="29.99" required>
+          </div>
+
+          <!-- Creative Link (URL) -->
+          <div class="form-group">
+            <label for="creativeLink"><i class="fas fa-video"></i> Creative Link (Ad / Media)</label>
+            <input type="url" id="creativeLink" name="creativeLink" placeholder="https://example.com/creative.mp4">
+          </div>
+
+          <!-- Sourcing URL (URL) -->
+          <div class="form-group">
+            <label for="sourcingUrl"><i class="fas fa-store"></i> Sourcing URL (Supplier)</label>
+            <input type="url" id="sourcingUrl" name="sourcingUrl" placeholder="https://alibaba.com/product...">
+          </div>
+
+          <!-- Competitor Details (textarea) -->
+          <div class="form-group">
+            <label for="competitorDetails"><i class="fas fa-chart-simple"></i> Competitor Details</label>
+            <textarea id="competitorDetails" name="competitorDetails" rows="3" placeholder="List main competitors, price gaps, USP analysis..."></textarea>
+          </div>
+
+          <!-- Form action buttons -->
+          <div class="form-actions">
+            <button type="submit" id="addProductBtn" class="btn btn-primary"><i class="fas fa-save"></i> Add Product</button>
+            <button type="button" id="updateProductBtn" class="btn btn-warning" style="display: none;"><i class="fas fa-pen-alt"></i> Update Product</button>
+            <button type="reset" id="resetFormBtn" class="btn btn-secondary"><i class="fas fa-undo-alt"></i> Clear</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- #################### CONTROLS SECTION (search / filter / sort) #################### -->
+      <section class="card controls-card">
+        <div class="card-header">
+          <h2><i class="fas fa-sliders-h"></i> Data Controls</h2>
+          <p>Refine, filter & sort your product catalog</p>
+        </div>
+        <div class="controls-grid">
+          <!-- Search bar -->
+          <div class="control-item search-wrapper">
+            <label for="searchInput"><i class="fas fa-search"></i> Search</label>
+            <input type="text" id="searchInput" placeholder="Product name, competitor keyword..." autocomplete="off">
+          </div>
+          <!-- Filter dropdown (rating/cost) -->
+          <div class="control-item">
+            <label for="filterSelect"><i class="fas fa-filter"></i> Filter by</label>
+            <select id="filterSelect">
+              <option value="all">All Products</option>
+              <option value="rating-high">Rating ≥ 4.0</option>
+              <option value="rating-low">Rating ≤ 2.5</option>
+              <option value="cost-low">Cost under $20</option>
+              <option value="cost-high">Cost over $50</option>
+            </select>
+          </div>
+          <!-- Sort buttons group -->
+          <div class="control-item sort-group">
+            <label><i class="fas fa-arrow-up-wide-short"></i> Sort by</label>
+            <div class="sort-buttons">
+              <button id="sortByNameAsc" class="btn-sort" title="Name A-Z"><i class="fas fa-sort-alpha-down"></i> Name</button>
+              <button id="sortByRatingDesc" class="btn-sort" title="Highest rating"><i class="fas fa-star"></i> Rating ↓</button>
+              <button id="sortByCostAsc" class="btn-sort" title="Lowest cost"><i class="fas fa-dollar-sign"></i> Cost ↑</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- #################### PRODUCT DISPLAY SECTION (Table / Card hybrid, responsive) #################### -->
+      <section class="card products-display-card" id="productsDisplaySection">
+        <div class="card-header">
+          <h2><i class="fas fa-boxes"></i> Product Inventory <span id="productCountBadge">(0 items)</span></h2>
+          <button id="exportPdfBtnInline" class="btn btn-accent"><i class="fas fa-download"></i> Download as PDF</button>
+        </div>
+        <div class="table-responsive-wrapper">
+          <table class="product-table" id="productTable">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Rating <i class="fas fa-star-of-life"></i></th>
+                <th>Cost (USD)</th>
+                <th>Creative Link</th>
+                <th>Sourcing URL</th>
+                <th>Competitor Details</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productTableBody">
+              <!-- Dynamic rows will be injected via JavaScript -->
+              <tr class="empty-row-message"><td colspan="7"><div class="empty-state"><i class="fas fa-database"></i> No products yet. Add your first winning product!</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- optional footer with stats -->
+      <footer class="dashboard-footer">
+        <p><i class="fas fa-chart-line"></i> Winning Product Research Tool — Real-time analytics ready | <span id="totalProductsFooter">0</span> products tracked</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ==================== JAVASCRIPT (MODULAR & FULLY FEATURED) ==================== -->
+  <script>
+    // ---------- GLOBAL STATE ----------
+    let products = [];         // array of product objects
+    let editMode = false;
+    let editProductId = null;
+
+    // DOM Elements
+    const productNameInput = document.getElementById('productName');
+    const productRatingInput = document.getElementById('productRating');
+    const productCostInput = document.getElementById('productCost');
+    const creativeLinkInput = document.getElementById('creativeLink');
+    const sourcingUrlInput = document.getElementById('sourcingUrl');
+    const competitorDetailsInput = document.getElementById('competitorDetails');
+    const addProductBtn = document.getElementById('addProductBtn');
+    const updateProductBtn = document.getElementById('updateProductBtn');
+    const resetFormBtn = document.getElementById('resetFormBtn');
+    const productForm = document.getElementById('productForm');
+    const productTableBody = document.getElementById('productTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const filterSelect = document.getElementById('filterSelect');
+    const sortByNameAsc = document.getElementById('sortByNameAsc');
+    const sortByRatingDesc = document.getElementById('sortByRatingDesc');
+    const sortByCostAsc = document.getElementById('sortByCostAsc');
+    const productCountBadge = document.getElementById('productCountBadge');
+    const totalProductsFooter = document.getElementById('totalProductsFooter');
+    const ratingValuePreview = document.getElementById('ratingValuePreview');
+    const starPreviewSpan = document.querySelector('.star-rating-preview');
+
+    // Helper: update star preview based on rating input
+    function updateStarPreview() {
+      let ratingVal = parseFloat(productRatingInput.value);
+      if (isNaN(ratingVal)) ratingVal = 0;
+      ratingVal = Math.min(5, Math.max(0, ratingVal));
+      const fullStars = Math.floor(ratingVal);
+      const hasHalf = (ratingVal - fullStars) >= 0.5;
+      let starHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        if (i <= fullStars) starHtml += '<i class="fas fa-star" style="color:#f5b342;"></i>';
+        else if (i === fullStars+1 && hasHalf) starHtml += '<i class="fas fa-star-half-alt" style="color:#f5b342;"></i>';
+        else starHtml += '<i class="far fa-star" style="color:#ccc;"></i>';
+      }
+      const starContainer = document.querySelector('#starPreview .star-icon');
+      if(starContainer) starContainer.innerHTML = starHtml;
+      if(ratingValuePreview) ratingValuePreview.innerText = ratingVal.toFixed(1);
+    }
+    productRatingInput.addEventListener('input', updateStarPreview);
+    
+    // render table based on filters + search + sort
+    let currentSort = { field: 'name', order: 'asc' }; // default
+    
+    function getFilteredAndSearchedProducts() {
+      let filtered = [...products];
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      const filterVal = filterSelect.value;
+      
+      // search by product name or competitor details (text)
+      if (searchTerm !== '') {
+        filtered = filtered.filter(p => 
+          p.name.toLowerCase().includes(searchTerm) || 
+          (p.competitorDetails && p.competitorDetails.toLowerCase().includes(searchTerm))
+        );
+      }
+      
+      // filter logic
+      switch(filterVal) {
+        case 'rating-high':
+          filtered = filtered.filter(p => p.rating >= 4.0);
+          break;
+        case 'rating-low':
+          filtered = filtered.filter(p => p.rating <= 2.5);
+          break;
+        case 'cost-low':
+          filtered = filtered.filter(p => p.cost < 20);
+          break;
+        case 'cost-high':
+          filtered = filtered.filter(p => p.cost > 50);
+          break;
+        default: break;
+      }
+      
+      // Apply current sort (global)
+      filtered.sort((a,b) => {
+        let aVal, bVal;
+        if (currentSort.field === 'name') { aVal = a.name.toLowerCase(); bVal = b.name.toLowerCase(); }
+        else if (currentSort.field === 'rating') { aVal = a.rating; bVal = b.rating; }
+        else if (currentSort.field === 'cost') { aVal = a.cost; bVal = b.cost; }
+        if (currentSort.order === 'asc') return aVal > bVal ? 1 : -1;
+        else return aVal < bVal ? 1 : -1;
+      });
+      return filtered;
+    }
+    
+    function updateUI() {
+      const filteredProducts = getFilteredAndSearchedProducts();
+      if (filteredProducts.length === 0) {
+        productTableBody.innerHTML = `<tr class="empty-row-message"><td colspan="7"><div class="empty-state"><i class="fas fa-database"></i> No matching products found. Add new or adjust filters.</div></td></tr>`;
+      } else {
+        let rows = '';
+        filteredProducts.forEach(product => {
+          // truncate competitor details if too long but show full in tooltip
+          const compShort = product.competitorDetails.length > 60 ? product.competitorDetails.substring(0,57)+'...' : product.competitorDetails;
+          rows += `
+            <tr data-id="${product.id}">
+              <td class="product-name-cell"><strong>${escapeHtml(product.name)}</strong></td>
+              <td class="rating-cell"><span class="rating-badge">${product.rating.toFixed(1)} <i class="fas fa-star"></i></span></td>
+              <td class="cost-cell">$${product.cost.toFixed(2)}</td>
+              <td class="link-cell">${product.creativeLink ? `<a href="${product.creativeLink}" target="_blank" rel="noopener noreferrer"><i class="fas fa-play-circle"></i> Preview</a>` : '—'}</td>
+              <td class="link-cell">${product.sourcingUrl ? `<a href="${product.sourcingUrl}" target="_blank" rel="noopener noreferrer"><i class="fas fa-link"></i> Source</a>` : '—'}</td>
+              <td class="competitor-cell" title="${escapeHtml(product.competitorDetails)}">${escapeHtml(compShort) || '—'}</td>
+              <td class="actions-cell">
+                <button class="action-btn edit-btn" data-id="${product.id}"><i class="fas fa-edit"></i> Edit</button>
+                <button class="action-btn delete-btn" data-id="${product.id}"><i class="fas fa-trash-alt"></i> Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+        productTableBody.innerHTML = rows;
+        // attach event listeners to dynamic edit/delete btns
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = parseInt(btn.getAttribute('data-id'));
+            handleEditProduct(id);
+          });
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = parseInt(btn.getAttribute('data-id'));
+            handleDeleteProduct(id);
+          });
+        });
+      }
+      // update counters
+      const total = products.length;
+      productCountBadge.innerText = `(${total} item${total !== 1 ? 's' : ''})`;
+      totalProductsFooter.innerText = total;
+    }
+    
+    // simple escape html
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+        return c;
+      });
+    }
+    
+    // add or update product
+    function getFormData() {
+      return {
+        name: productNameInput.value.trim(),
+        rating: parseFloat(productRatingInput.value),
+        cost: parseFloat(productCostInput.value),
+        creativeLink: creativeLinkInput.value.trim(),
+        sourcingUrl: sourcingUrlInput.value.trim(),
+        competitorDetails: competitorDetailsInput.value.trim()
+      };
+    }
+    
+    function validateForm(data) {
+      if (!data.name || data.name.length < 2) { alert("Product name required (min 2 chars)"); return false; }
+      if (isNaN(data.rating) || data.rating < 0 || data.rating > 5) { alert("Rating must be between 0 and 5"); return false; }
+      if (isNaN(data.cost) || data.cost < 0) { alert("Cost must be a positive number"); return false; }
+      if (data.creativeLink && !isValidUrl(data.creativeLink)) { alert("Creative Link must be a valid URL (http/https)"); return false; }
+      if (data.sourcingUrl && !isValidUrl(data.sourcingUrl)) { alert("Sourcing URL must be a valid URL"); return false; }
+      return true;
+    }
+    
+    function isValidUrl(string) {
+      try { new URL(string); return true; } catch (_) { return false; }
+    }
+    
+    function resetFormToDefault() {
+      productForm.reset();
+      editMode = false;
+      editProductId = null;
+      addProductBtn.style.display = 'inline-flex';
+      updateProductBtn.style.display = 'none';
+      productNameInput.value = '';
+      productRatingInput.value = '';
+      productCostInput.value = '';
+      creativeLinkInput.value = '';
+      sourcingUrlInput.value = '';
+      competitorDetailsInput.value = '';
+      updateStarPreview();
+    }
+    
+    function handleAddProduct(event) {
+      event.preventDefault();
+      const data = getFormData();
+      if (!validateForm(data)) return;
+      const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+      const newProduct = { id: newId, ...data };
+      products.push(newProduct);
+      resetFormToDefault();
+      updateUI();
+    }
+    
+    function handleEditProduct(id) {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+      productNameInput.value = product.name;
+      productRatingInput.value = product.rating;
+      productCostInput.value = product.cost;
+      creativeLinkInput.value = product.creativeLink || '';
+      sourcingUrlInput.value = product.sourcingUrl || '';
+      competitorDetailsInput.value = product.competitorDetails || '';
+      editMode = true;
+      editProductId = id;
+      addProductBtn.style.display = 'none';
+      updateProductBtn.style.display = 'inline-flex';
+      updateStarPreview();
+      // scroll to form smoothly
+      document.getElementById('productFormSection').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function handleUpdateProduct() {
+      if (!editMode || editProductId === null) return;
+      const data = getFormData();
+      if (!validateForm(data)) return;
+      const index = products.findIndex(p => p.id === editProductId);
+      if (index !== -1) {
+        products[index] = { ...products[index], ...data };
+      }
+      resetFormToDefault();
+      updateUI();
+    }
+    
+    function handleDeleteProduct(id) {
+      if (confirm("Permanently delete this winning product?")) {
+        products = products.filter(p => p.id !== id);
+        if (editMode && editProductId === id) resetFormToDefault();
+        updateUI();
+      }
+    }
+    
+    // sorting listeners
+    sortByNameAsc.addEventListener('click', () => { currentSort = { field: 'name', order: 'asc' }; updateUI(); });
+    sortByRatingDesc.addEventListener('click', () => { currentSort = { field: 'rating', order: 'desc' }; updateUI(); });
+    sortByCostAsc.addEventListener('click', () => { currentSort = { field: 'cost', order: 'asc' }; updateUI(); });
+    searchInput.addEventListener('input', () => updateUI());
+    filterSelect.addEventListener('change', () => updateUI());
+    
+    // event binding for form
+    addProductBtn.addEventListener('click', handleAddProduct);
+    updateProductBtn.addEventListener('click', handleUpdateProduct);
+    resetFormBtn.addEventListener('click', (e) => { resetFormToDefault(); });
+    
+    // PDF Export using html2canvas + jsPDF (capture product table + dashboard header)
+    async function exportToPDF() {
+      const elementToCapture = document.querySelector('.dashboard-main');
+      if (!elementToCapture) return;
+      // Show loading feedback
+      const exportBtn = document.getElementById('exportPdfBtnInline');
+      const originalText = exportBtn.innerHTML;
+      exportBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Generating PDF...';
+      exportBtn.disabled = true;
+      try {
+        const canvas = await html2canvas(elementToCapture, { scale: 2, logging: false, useCORS: false });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 190; // mm
+        const pageHeight = 277;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let position = 10;
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        // if content exceeds page add new page (simple handling)
+        let heightLeft = imgHeight;
+        while (heightLeft > pageHeight) {
+          position = heightLeft - pageHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 10, -position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+        pdf.save('winning_products_report.pdf');
+      } catch (err) {
+        console.error('PDF error:', err);
+        alert('Error generating PDF. Ensure all content is loaded.');
+      } finally {
+        exportBtn.innerHTML = originalText;
+        exportBtn.disabled = false;
+      }
+    }
+    
+    document.getElementById('exportPdfBtnInline').addEventListener('click', exportToPDF);
+    // also top navbar export
+    document.getElementById('navExportPdfBtn').addEventListener('click', exportToPDF);
+    // navbar smooth navigation
+    document.getElementById('navHomeBtn').addEventListener('click', () => {
+      document.querySelector('.dashboard-main').scrollIntoView({ behavior: 'smooth' });
+    });
+    document.getElementById('navAddBtn').addEventListener('click', () => {
+      document.getElementById('productFormSection').scrollIntoView({ behavior: 'smooth' });
+    });
+    
+    // Prepopulate with demo data to showcase advanced structure (3 winning products)
+    function initDemoData() {
+      if (products.length === 0) {
+        products = [
+          { id: 1, name: "Ergonomic Travel Pillow", rating: 4.8, cost: 24.99, creativeLink: "https://example.com/pillow_ad", sourcingUrl: "https://alibaba.com/pillow", competitorDetails: "Main rival: Infinity Pillow, 10% cheaper but lower quality." },
+          { id: 2, name: "Smart LED Desk Lamp", rating: 4.5, cost: 39.99, creativeLink: "https://example.com/lamp_video", sourcingUrl: "https://aliexpress.com/lamp", competitorDetails: "Competitors: TaoTronics, BenQ. Our lamp has wireless charging." },
+          { id: 3, name: "HydroBoost Water Bottle", rating: 4.9, cost: 18.75, creativeLink: "https://example.com/bottle_creative", sourcingUrl: "https://amazon.com/supplier", competitorDetails: "Yeti & Nalgene; differentiation: fruit infuser + insulation." }
+        ];
+        updateUI();
+      }
+    }
+    updateStarPreview();
+    initDemoData();
+  </script>
+</body>
+</html>
